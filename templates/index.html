@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CMNFA 管理台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <div class="max-w-6xl mx-auto p-6">
+    <header class="mb-6 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold">CMNFA 管理台</h1>
+        <p class="text-sm text-slate-500 mt-1">合约：<span id="contractName" class="font-mono">{{ contract }}</span></p>
+      </div>
+      <button id="btnStatus" class="px-3 py-2 rounded-lg bg-slate-900 text-white text-sm">检查连接</button>
+    </header>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- 左侧：操作 -->
+      <div class="space-y-6">
+        <!-- Mint -->
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h2 class="text-lg font-semibold mb-4">Mint（铸造）</h2>
+          <div class="grid gap-3">
+            <div>
+              <label class="block text-sm mb-1">接收地址（40位 hex）</label>
+              <input id="mintTo" class="w-full rounded-lg border px-3 py-2" placeholder="6dd5....1770">
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+              <div class="col-span-2">
+                <label class="block text-sm mb-1">Token ID（字符串）</label>
+                <input id="mintTokenId" class="w-full rounded-lg border px-3 py-2" placeholder="如 1755199999">
+              </div>
+              <div class="flex items-end">
+                <button id="btnGenTid" class="w-full rounded-lg border px-3 py-2">用时间戳</button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm mb-1">分类名（categoryName）</label>
+              <input id="mintCategory" class="w-full rounded-lg border px-3 py-2" placeholder="如 demo">
+            </div>
+            <div>
+              <label class="block text-sm mb-1">Metadata（明文，可选）</label>
+              <input id="mintMeta" class="w-full rounded-lg border px-3 py-2" placeholder='如 {"name":"demo-nfa"}'>
+            </div>
+            <div class="flex gap-3">
+              <button id="btnMint" class="rounded-lg px-4 py-2 bg-emerald-600 text-white">铸造</button>
+              <button id="btnCreateCate" class="rounded-lg px-4 py-2 bg-sky-600 text-white">创建/设置分类</button>
+            </div>
+            <p class="text-xs text-slate-500">提示：Mint 需要合约内的管理员权限（由 sdk_config.yml 的调用者地址决定）。</p>
+          </div>
+        </div>
+
+        <!-- TransferFrom -->
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h2 class="text-lg font-semibold mb-4">TransferFrom（转移）</h2>
+          <div class="grid gap-3">
+            <div>
+              <label class="block text-sm mb-1">From（当前持有人 hex 地址）</label>
+              <input id="tfFrom" class="w-full rounded-lg border px-3 py-2" placeholder="6dd5....1770">
+            </div>
+            <div>
+              <label class="block text-sm mb-1">To（接收人 hex 地址）</label>
+              <input id="tfTo" class="w-full rounded-lg border px-3 py-2" placeholder="40位 hex">
+            </div>
+            <div>
+              <label class="block text-sm mb-1">Token ID</label>
+              <input id="tfTokenId" class="w-full rounded-lg border px-3 py-2">
+            </div>
+            <button id="btnTf" class="rounded-lg px-4 py-2 bg-indigo-600 text-white">转移</button>
+            <p class="text-xs text-slate-500">提示：调用者必须为持有人或被授权账户；调用者由 sdk_config.yml 决定。</p>
+          </div>
+        </div>
+
+        <!-- Burn -->
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h2 class="text-lg font-semibold mb-4">Burn（销毁）</h2>
+          <div class="grid gap-3">
+            <div>
+              <label class="block text-sm mb-1">Token ID</label>
+              <input id="burnTokenId" class="w-full rounded-lg border px-3 py-2">
+            </div>
+            <button id="btnBurn" class="rounded-lg px-4 py-2 bg-rose-600 text-white">销毁</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧：查询/结果 -->
+      <div class="space-y-6">
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h2 class="text-lg font-semibold mb-4">查询</h2>
+          <div class="grid gap-3">
+            <div class="grid grid-cols-3 gap-3">
+              <div class="col-span-2">
+                <label class="block text-sm mb-1">Token ID</label>
+                <input id="qTokenId" class="w-full rounded-lg border px-3 py-2">
+              </div>
+              <div class="flex items-end gap-2">
+                <button id="btnOwner" class="flex-1 rounded-lg px-3 py-2 border">OwnerOf</button>
+                <button id="btnURI" class="flex-1 rounded-lg px-3 py-2 border">TokenURI</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <div class="col-span-2">
+                <label class="block text-sm mb-1">账户地址（hex）</label>
+                <input id="qAccount" class="w-full rounded-lg border px-3 py-2">
+              </div>
+              <div class="flex items-end gap-2">
+                <button id="btnBal" class="flex-1 rounded-lg px-3 py-2 border">BalanceOf</button>
+                <button id="btnTS" class="flex-1 rounded-lg px-3 py-2 border">TotalSupply</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h2 class="text-lg font-semibold mb-4">结果</h2>
+          <pre id="out" class="bg-slate-900 text-slate-50 rounded-xl p-4 text-sm overflow-auto min-h-[220px]"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const out = document.getElementById('out');
+    const setOut = (v) => out.textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2);
+
+    const post = async (url, data) => {
+      const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data||{})});
+      return r.json();
+    }
+    const get  = async (url) => (await fetch(url)).json();
+
+    // 状态
+    document.getElementById('btnStatus').onclick = async () => {
+      const r = await get('/api/system/status');
+      setOut(r);
+    };
+
+    // 生成时间戳 tokenId
+    document.getElementById('btnGenTid').onclick = () => {
+      document.getElementById('mintTokenId').value = Math.floor(Date.now()/1000);
+    };
+
+    // Mint
+    document.getElementById('btnMint').onclick = async () => {
+      const to = document.getElementById('mintTo').value.trim();
+      const tokenId = document.getElementById('mintTokenId').value.trim();
+      const categoryName = document.getElementById('mintCategory').value.trim();
+      const metaText = document.getElementById('mintMeta').value;
+      const r = await post('/api/nfa/mint', {to, tokenId, categoryName, metadata_text: metaText});
+      setOut(r);
+    };
+
+    // 创建/设置分类
+    document.getElementById('btnCreateCate').onclick = async () => {
+      const name = document.getElementById('mintCategory').value.trim() || 'demo';
+      const uri = prompt('请输入该分类的 CategoryURI（例如 https://example.org/nfa）', 'https://example.org/nfa');
+      if (!uri) return;
+      const r = await post('/api/nfa/create-or-set-category', {categoryName: name, categoryURI: uri});
+      setOut(r);
+    };
+
+    // TransferFrom
+    document.getElementById('btnTf').onclick = async () => {
+      const from = document.getElementById('tfFrom').value.trim();
+      const to = document.getElementById('tfTo').value.trim();
+      const tokenId = document.getElementById('tfTokenId').value.trim();
+      const r = await post('/api/nfa/transfer-from', {from, to, tokenId});
+      setOut(r);
+    };
+
+    // Burn
+    document.getElementById('btnBurn').onclick = async () => {
+      const tokenId = document.getElementById('burnTokenId').value.trim();
+      const r = await post('/api/nfa/burn', {tokenId});
+      setOut(r);
+    };
+
+    // OwnerOf
+    document.getElementById('btnOwner').onclick = async () => {
+      const tokenId = document.getElementById('qTokenId').value.trim();
+      const r = await post('/api/nfa/owner', {tokenId});
+      setOut(r);
+    };
+
+    // TokenURI
+    document.getElementById('btnURI').onclick = async () => {
+      const tokenId = document.getElementById('qTokenId').value.trim();
+      const r = await post('/api/nfa/token-uri', {tokenId});
+      setOut(r);
+    };
+
+    // BalanceOf
+    document.getElementById('btnBal').onclick = async () => {
+      const account = document.getElementById('qAccount').value.trim();
+      const r = await post('/api/nfa/balance-of', {account});
+      setOut(r);
+    };
+
+    // TotalSupply
+    document.getElementById('btnTS').onclick = async () => {
+      const r = await get('/api/nfa/total-supply');
+      setOut(r);
+    };
+  </script>
+</body>
+</html>
