@@ -5,119 +5,390 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>CMNFA 管理台</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+    
+    * {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+    
+    .btn {
+      transition: all 0.3s ease;
+      font-weight: 600;
+      border-radius: 10px;
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      font-size: 14px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+    
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(245, 87, 108, 0.4);
+    }
+    
+    .btn-info {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+    }
+    
+    .btn-info:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(79, 172, 254, 0.4);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(250, 112, 154, 0.4);
+    }
+    
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+      border: 1px solid #e0e0e0;
+    }
+    
+    .btn-secondary:hover {
+      background: #e8e8e8;
+      transform: translateY(-2px);
+    }
+    
+    .input-field {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    .input-field:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .section-icon {
+      font-size: 24px;
+    }
+    
+    .upload-zone {
+      border: 2px dashed #667eea;
+      border-radius: 16px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+    }
+    
+    .upload-zone:hover {
+      border-color: #764ba2;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    }
+    
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 12px;
+      color: white;
+      animation: slideIn 0.3s ease;
+      z-index: 1000;
+    }
+    
+    .toast.success {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .toast.error {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    .result-container {
+      background: #1a202c;
+      color: #e2e8f0;
+      border-radius: 14px;
+      padding: 20px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-x: auto;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    
+    .loading {
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
-  <div class="max-w-6xl mx-auto p-6">
-    <header class="mb-6 flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold">CMNFA 管理台</h1>
-        <p class="text-sm text-slate-500 mt-1">合约：<span id="contractName" class="font-mono">{{ contract }}</span></p>
-      </div>
-      <button id="btnStatus" class="px-3 py-2 rounded-lg bg-slate-900 text-white text-sm">检查连接</button>
-    </header>
-
-    <div class="grid md:grid-cols-2 gap-6">
-      <!-- 左侧：操作 -->
-      <div class="space-y-6">
-        <!-- Mint -->
-        <div class="bg-white rounded-2xl shadow p-5">
-          <h2 class="text-lg font-semibold mb-4">Mint（铸造）</h2>
-          <div class="grid gap-3">
+<body>
+<body>
+  <div class="min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- 顶部 -->
+      <div class="mb-8">
+        <div class="card p-8">
+          <div class="flex items-center justify-between mb-6">
             <div>
-              <label class="block text-sm mb-1">接收地址（40位 hex）</label>
-              <input id="mintTo" class="w-full rounded-lg border px-3 py-2" placeholder="6dd5....1770">
-            </div>
-            <div class="grid grid-cols-3 gap-3">
-              <div class="col-span-2">
-                <label class="block text-sm mb-1">Token ID（字符串）</label>
-                <input id="mintTokenId" class="w-full rounded-lg border px-3 py-2" placeholder="如 1755199999">
+              <div class="flex items-center gap-3 mb-2">
+                <span class="text-4xl">⛓️</span>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">CMNFA 管理台</h1>
               </div>
-              <div class="flex items-end">
-                <button id="btnGenTid" class="w-full rounded-lg border px-3 py-2">用时间戳</button>
+              <p class="text-gray-500">智能 NFT 资产管理与铸造平台</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div id="statusIndicator" class="flex items-center gap-2">
+                <span class="inline-block w-3 h-3 rounded-full bg-gray-300"></span>
+                <span class="text-sm text-gray-600">检测中...</span>
               </div>
+              <button id="btnStatus" class="btn btn-primary">🔍 检查连接</button>
             </div>
-            <div>
-              <label class="block text-sm mb-1">分类名（categoryName）</label>
-              <input id="mintCategory" class="w-full rounded-lg border px-3 py-2" placeholder="如 demo">
-            </div>
-            <div>
-              <label class="block text-sm mb-1">Metadata（明文，可选）</label>
-              <input id="mintMeta" class="w-full rounded-lg border px-3 py-2" placeholder='如 {"name":"demo-nfa"}'>
-            </div>
-            <div class="flex gap-3">
-              <button id="btnMint" class="rounded-lg px-4 py-2 bg-emerald-600 text-white">铸造</button>
-              <button id="btnCreateCate" class="rounded-lg px-4 py-2 bg-sky-600 text-white">创建/设置分类</button>
-            </div>
-            <p class="text-xs text-slate-500">提示：Mint 需要合约内的管理员权限（由 sdk_config.yml 的调用者地址决定）。</p>
           </div>
-        </div>
-
-        <!-- TransferFrom -->
-        <div class="bg-white rounded-2xl shadow p-5">
-          <h2 class="text-lg font-semibold mb-4">TransferFrom（转移）</h2>
-          <div class="grid gap-3">
-            <div>
-              <label class="block text-sm mb-1">From（当前持有人 hex 地址）</label>
-              <input id="tfFrom" class="w-full rounded-lg border px-3 py-2" placeholder="6dd5....1770">
-            </div>
-            <div>
-              <label class="block text-sm mb-1">To（接收人 hex 地址）</label>
-              <input id="tfTo" class="w-full rounded-lg border px-3 py-2" placeholder="40位 hex">
-            </div>
-            <div>
-              <label class="block text-sm mb-1">Token ID</label>
-              <input id="tfTokenId" class="w-full rounded-lg border px-3 py-2">
-            </div>
-            <button id="btnTf" class="rounded-lg px-4 py-2 bg-indigo-600 text-white">转移</button>
-            <p class="text-xs text-slate-500">提示：调用者必须为持有人或被授权账户；调用者由 sdk_config.yml 决定。</p>
-          </div>
-        </div>
-
-        <!-- Burn -->
-        <div class="bg-white rounded-2xl shadow p-5">
-          <h2 class="text-lg font-semibold mb-4">Burn（销毁）</h2>
-          <div class="grid gap-3">
-            <div>
-              <label class="block text-sm mb-1">Token ID</label>
-              <input id="burnTokenId" class="w-full rounded-lg border px-3 py-2">
-            </div>
-            <button id="btnBurn" class="rounded-lg px-4 py-2 bg-rose-600 text-white">销毁</button>
+          <div class="pt-4 border-t border-gray-100">
+            <p class="text-sm text-gray-600">
+              <span class="font-semibold">合约：</span>
+              <span id="contractName" class="font-mono text-purple-600">{{ contract }}</span>
+            </p>
           </div>
         </div>
       </div>
 
-      <!-- 右侧：查询/结果 -->
-      <div class="space-y-6">
-        <div class="bg-white rounded-2xl shadow p-5">
-          <h2 class="text-lg font-semibold mb-4">查询</h2>
-          <div class="grid gap-3">
-            <div class="grid grid-cols-3 gap-3">
-              <div class="col-span-2">
-                <label class="block text-sm mb-1">Token ID</label>
-                <input id="qTokenId" class="w-full rounded-lg border px-3 py-2">
-              </div>
-              <div class="flex items-end gap-2">
-                <button id="btnOwner" class="flex-1 rounded-lg px-3 py-2 border">OwnerOf</button>
-                <button id="btnURI" class="flex-1 rounded-lg px-3 py-2 border">TokenURI</button>
+      <!-- 主体 -->
+      <div class="grid lg:grid-cols-3 gap-8">
+        <!-- 左侧：操作区域 -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- 上传图片 -->
+          <div class="card p-6">
+            <div class="section-title">
+              <span class="section-icon">📸</span>
+              上传图片
+            </div>
+            <div class="upload-zone" id="uploadZone">
+              <input type="file" id="uploadFile" accept="image/*" class="hidden">
+              <div class="cursor-pointer">
+                <div class="text-5xl mb-4">🖼️</div>
+                <div class="text-lg font-semibold text-gray-700 mb-2">拖拽或点击上传</div>
+                <div class="text-sm text-gray-500">支持 PNG, JPG, GIF, WebP 格式</div>
+                <div class="text-xs text-gray-400 mt-3">单个文件大小不超过 10MB</div>
               </div>
             </div>
+            <div id="uploadInfo" class="hidden mt-4 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-green-600">✓</span>
+                <span class="font-semibold text-green-900">上传成功</span>
+              </div>
+              <div class="text-sm text-green-800 mt-2 flex items-center justify-between">
+                <span class="font-mono text-xs truncate" id="uploadedUrl"></span>
+                <button id="btnCopyUrl" class="btn btn-primary text-xs ml-3">复制</button>
+              </div>
+            </div>
+            <div id="uploadError" class="hidden mt-4 p-4 bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl">
+              <div class="flex items-center gap-2">
+                <span class="text-red-600">⚠️</span>
+                <span id="uploadErrorMsg" class="text-sm text-red-800"></span>
+              </div>
+            </div>
+          </div>
 
-            <div class="grid grid-cols-3 gap-3">
-              <div class="col-span-2">
-                <label class="block text-sm mb-1">账户地址（hex）</label>
-                <input id="qAccount" class="w-full rounded-lg border px-3 py-2">
+          <!-- Mint -->
+          <div class="card p-6">
+            <div class="section-title">
+              <span class="section-icon">✨</span>
+              铸造 NFT
+            </div>
+            <div class="grid gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">接收地址</label>
+                <input id="mintTo" class="input-field" placeholder="输入 40 位 hex 地址">
               </div>
-              <div class="flex items-end gap-2">
-                <button id="btnBal" class="flex-1 rounded-lg px-3 py-2 border">BalanceOf</button>
-                <button id="btnTS" class="flex-1 rounded-lg px-3 py-2 border">TotalSupply</button>
+              <div class="grid grid-cols-3 gap-3">
+                <div class="col-span-2">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">Token ID</label>
+                  <input id="mintTokenId" class="input-field" placeholder="输入 Token ID">
+                </div>
+                <div class="flex items-end">
+                  <button id="btnGenTid" class="btn btn-secondary w-full">⏱️ 时间戳</button>
+                </div>
               </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">分类名</label>
+                <input id="mintCategory" class="input-field" placeholder="输入分类名">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">图片 URL <span class="text-xs text-gray-400">(可选)</span></label>
+                <input id="mintImageUrl" class="input-field" placeholder="/static/nfa_images/xxx.jpg">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Metadata <span class="text-xs text-gray-400">(可选 JSON)</span></label>
+                <input id="mintMeta" class="input-field" placeholder='{"name":"demo-nfa"}'>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <button id="btnMint" class="btn btn-success">💎 铸造</button>
+                <button id="btnCreateCate" class="btn btn-info">📁 设置分类</button>
+              </div>
+              <p class="text-xs text-gray-500 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                ℹ️ 铸造需要管理员权限，调用者由 sdk_config.yml 决定
+              </p>
+            </div>
+          </div>
+
+          <!-- TransferFrom -->
+          <div class="card p-6">
+            <div class="section-title">
+              <span class="section-icon">🔄</span>
+              转移 NFT
+            </div>
+            <div class="grid gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">From (当前持有人)</label>
+                <input id="tfFrom" class="input-field" placeholder="40 位 hex 地址">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">To (接收人)</label>
+                <input id="tfTo" class="input-field" placeholder="40 位 hex 地址">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Token ID</label>
+                <input id="tfTokenId" class="input-field" placeholder="输入 Token ID">
+              </div>
+              <button id="btnTf" class="btn btn-primary">转移</button>
+            </div>
+          </div>
+
+          <!-- Burn -->
+          <div class="card p-6">
+            <div class="section-title">
+              <span class="section-icon">🔥</span>
+              销毁 NFT
+            </div>
+            <div class="grid gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Token ID</label>
+                <input id="burnTokenId" class="input-field" placeholder="输入要销毁的 Token ID">
+              </div>
+              <button id="btnBurn" class="btn btn-danger">销毁</button>
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow p-5">
-          <h2 class="text-lg font-semibold mb-4">结果</h2>
-          <pre id="out" class="bg-slate-900 text-slate-50 rounded-xl p-4 text-sm overflow-auto min-h-[220px]"></pre>
+        <!-- 右侧：查询和结果 -->
+        <div class="lg:col-span-1 space-y-6">
+          <!-- 查询面板 -->
+          <div class="card p-6">
+            <div class="section-title">
+              <span class="section-icon">🔎</span>
+              查询工具
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Token ID</label>
+                <div class="flex gap-2">
+                  <input id="qTokenId" class="input-field flex-1" placeholder="Token ID">
+                </div>
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                  <button id="btnOwner" class="btn btn-secondary">👤 Owner</button>
+                  <button id="btnURI" class="btn btn-secondary">🔗 URI</button>
+                </div>
+              </div>
+              <div class="pt-3 border-t border-gray-200">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">账户地址</label>
+                <input id="qAccount" class="input-field" placeholder="40 位 hex 地址">
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                  <button id="btnBal" class="btn btn-secondary">💰 Balance</button>
+                  <button id="btnTS" class="btn btn-secondary">📊 Supply</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 结果输出 -->
+          <div class="card p-6">
+            <div class="section-title">
+              <span class="section-icon">📋</span>
+              执行结果
+            </div>
+            <div id="out" class="result-container">等待操作...</div>
+          </div>
+
+          <!-- 快速操作 -->
+          <div class="card p-6 bg-gradient-to-br from-purple-50 to-pink-50">
+            <div class="section-title">
+              <span class="section-icon">⚡</span>
+              快速操作
+            </div>
+            <div class="space-y-2 text-sm text-gray-700">
+              <p>• 点击 <span class="font-semibold text-purple-600">检查连接</span> 验证系统状态</p>
+              <p>• 使用 <span class="font-semibold text-purple-600">时间戳</span> 快速生成 Token ID</p>
+              <p>• 上传图片后自动填充 URL</p>
+              <p>• 所有操作都会显示详细结果</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -125,23 +396,126 @@
 
   <script>
     const out = document.getElementById('out');
-    const setOut = (v) => out.textContent = typeof v === 'string' ? v : JSON.stringify(v, null, 2);
+    const setOut = (v, isLoading = false) => {
+      const text = typeof v === 'string' ? v : JSON.stringify(v, null, 2);
+      out.textContent = text;
+      if (isLoading) out.classList.add('loading');
+      else out.classList.remove('loading');
+    };
+
+    const showToast = (msg, type = 'success') => {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    };
 
     const post = async (url, data) => {
-      const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data||{})});
-      return r.json();
-    }
-    const get  = async (url) => (await fetch(url)).json();
+      try {
+        const r = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data || {})
+        });
+        return r.json();
+      } catch (e) {
+        return { success: false, error: e.message };
+      }
+    };
 
-    // 状态
+    const get = async (url) => {
+      try {
+        return await (await fetch(url)).json();
+      } catch (e) {
+        return { success: false, error: e.message };
+      }
+    };
+
+    // 上传图片处理
+    const uploadFile = document.getElementById('uploadFile');
+    const uploadZone = document.getElementById('uploadZone');
+    const uploadInfo = document.getElementById('uploadInfo');
+    const uploadError = document.getElementById('uploadError');
+    const uploadedUrl = document.getElementById('uploadedUrl');
+    const mintImageUrl = document.getElementById('mintImageUrl');
+
+    uploadZone.onclick = () => uploadFile.click();
+    uploadZone.ondragover = (e) => {
+      e.preventDefault();
+      uploadZone.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15))';
+    };
+    uploadZone.ondragleave = () => {
+      uploadZone.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05))';
+    };
+    uploadZone.ondrop = (e) => {
+      e.preventDefault();
+      uploadZone.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05))';
+      if (e.dataTransfer.files[0]) {
+        uploadFile.files = e.dataTransfer.files;
+        triggerUpload();
+      }
+    };
+
+    uploadFile.onchange = triggerUpload;
+
+    async function triggerUpload() {
+      const file = uploadFile.files[0];
+      if (!file) return;
+
+      uploadError.classList.add('hidden');
+      uploadInfo.classList.add('hidden');
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const r = await fetch('/api/upload/image', { method: 'POST', body: formData });
+        const data = await r.json();
+        if (data.success) {
+          uploadedUrl.textContent = data.data.url;
+          mintImageUrl.value = data.data.url;
+          uploadInfo.classList.remove('hidden');
+          showToast('✓ 图片上传成功', 'success');
+          setOut(data);
+        } else {
+          document.getElementById('uploadErrorMsg').textContent = data.error;
+          uploadError.classList.remove('hidden');
+          showToast('✗ ' + data.error, 'error');
+        }
+      } catch (err) {
+        document.getElementById('uploadErrorMsg').textContent = '上传失败: ' + err.message;
+        uploadError.classList.remove('hidden');
+        showToast('✗ 上传异常', 'error');
+      }
+    }
+
+    // 复制 URL
+    document.getElementById('btnCopyUrl').onclick = () => {
+      navigator.clipboard.writeText(uploadedUrl.textContent);
+      showToast('✓ 已复制到剪贴板', 'success');
+    };
+
+    // 检查连接
     document.getElementById('btnStatus').onclick = async () => {
+      setOut('检查中...', true);
       const r = await get('/api/system/status');
+      const status = document.getElementById('statusIndicator');
+      if (r.success) {
+        status.innerHTML = '<span class="inline-block w-3 h-3 rounded-full bg-green-500"></span><span class="text-sm text-green-600">连接正常</span>';
+        showToast('✓ 系统连接正常', 'success');
+      } else {
+        status.innerHTML = '<span class="inline-block w-3 h-3 rounded-full bg-red-500"></span><span class="text-sm text-red-600">连接失败</span>';
+        showToast('✗ 系统连接失败', 'error');
+      }
       setOut(r);
     };
 
-    // 生成时间戳 tokenId
+    // 生成时间戳 Token ID
     document.getElementById('btnGenTid').onclick = () => {
-      document.getElementById('mintTokenId').value = Math.floor(Date.now()/1000);
+      const tid = Math.floor(Date.now() / 1000);
+      document.getElementById('mintTokenId').value = tid;
+      showToast(`✓ 已生成时间戳: ${tid}`, 'success');
     };
 
     // Mint
@@ -149,18 +523,48 @@
       const to = document.getElementById('mintTo').value.trim();
       const tokenId = document.getElementById('mintTokenId').value.trim();
       const categoryName = document.getElementById('mintCategory').value.trim();
-      const metaText = document.getElementById('mintMeta').value;
-      const r = await post('/api/nfa/mint', {to, tokenId, categoryName, metadata_text: metaText});
+      let metaText = document.getElementById('mintMeta').value;
+      const imageUrl = document.getElementById('mintImageUrl').value.trim();
+
+      if (!to || !tokenId || !categoryName) {
+        showToast('⚠️ 请填写必填字段', 'error');
+        return;
+      }
+
+      if (imageUrl && !metaText) {
+        metaText = JSON.stringify({ image: imageUrl });
+      } else if (imageUrl && metaText) {
+        try {
+          const meta = JSON.parse(metaText);
+          meta.image = imageUrl;
+          metaText = JSON.stringify(meta);
+        } catch (e) {}
+      }
+
+      setOut('铸造中...', true);
+      const r = await post('/api/nfa/mint', { to, tokenId, categoryName, metadata_text: metaText });
       setOut(r);
+      if (r.success) {
+        showToast('✓ NFT 铸造成功', 'success');
+      } else {
+        showToast('✗ 铸造失败', 'error');
+      }
     };
 
-    // 创建/设置分类
+    // 设置分类
     document.getElementById('btnCreateCate').onclick = async () => {
-      const name = document.getElementById('mintCategory').value.trim() || 'demo';
-      const uri = prompt('请输入该分类的 CategoryURI（例如 https://example.org/nfa）', 'https://example.org/nfa');
+      const name = document.getElementById('mintCategory').value.trim() || 'default';
+      const uri = prompt('输入分类 URI (例如: https://example.org/nfa)', 'https://example.org/nfa');
       if (!uri) return;
-      const r = await post('/api/nfa/create-or-set-category', {categoryName: name, categoryURI: uri});
+
+      setOut('设置分类中...', true);
+      const r = await post('/api/nfa/create-or-set-category', { categoryName: name, categoryURI: uri });
       setOut(r);
+      if (r.success) {
+        showToast('✓ 分类设置成功', 'success');
+      } else {
+        showToast('✗ 设置失败', 'error');
+      }
     };
 
     // TransferFrom
@@ -168,43 +572,85 @@
       const from = document.getElementById('tfFrom').value.trim();
       const to = document.getElementById('tfTo').value.trim();
       const tokenId = document.getElementById('tfTokenId').value.trim();
-      const r = await post('/api/nfa/transfer-from', {from, to, tokenId});
+
+      if (!from || !to || !tokenId) {
+        showToast('⚠️ 请填写所有字段', 'error');
+        return;
+      }
+
+      setOut('转移中...', true);
+      const r = await post('/api/nfa/transfer-from', { from, to, tokenId });
       setOut(r);
+      if (r.success) {
+        showToast('✓ NFT 转移成功', 'success');
+      } else {
+        showToast('✗ 转移失败', 'error');
+      }
     };
 
     // Burn
     document.getElementById('btnBurn').onclick = async () => {
       const tokenId = document.getElementById('burnTokenId').value.trim();
-      const r = await post('/api/nfa/burn', {tokenId});
+      if (!tokenId) {
+        showToast('⚠️ 请输入 Token ID', 'error');
+        return;
+      }
+
+      if (!confirm('确认销毁此 NFT? 此操作不可逆!')) return;
+
+      setOut('销毁中...', true);
+      const r = await post('/api/nfa/burn', { tokenId });
       setOut(r);
+      if (r.success) {
+        showToast('✓ NFT 销毁成功', 'success');
+      } else {
+        showToast('✗ 销毁失败', 'error');
+      }
     };
 
     // OwnerOf
     document.getElementById('btnOwner').onclick = async () => {
       const tokenId = document.getElementById('qTokenId').value.trim();
-      const r = await post('/api/nfa/owner', {tokenId});
+      if (!tokenId) {
+        showToast('⚠️ 请输入 Token ID', 'error');
+        return;
+      }
+      setOut('查询中...', true);
+      const r = await post('/api/nfa/owner', { tokenId });
       setOut(r);
     };
 
     // TokenURI
     document.getElementById('btnURI').onclick = async () => {
       const tokenId = document.getElementById('qTokenId').value.trim();
-      const r = await post('/api/nfa/token-uri', {tokenId});
+      if (!tokenId) {
+        showToast('⚠️ 请输入 Token ID', 'error');
+        return;
+      }
+      setOut('查询中...', true);
+      const r = await post('/api/nfa/token-uri', { tokenId });
       setOut(r);
     };
 
     // BalanceOf
     document.getElementById('btnBal').onclick = async () => {
       const account = document.getElementById('qAccount').value.trim();
-      const r = await post('/api/nfa/balance-of', {account});
+      if (!account) {
+        showToast('⚠️ 请输入账户地址', 'error');
+        return;
+      }
+      setOut('查询中...', true);
+      const r = await post('/api/nfa/balance-of', { account });
       setOut(r);
     };
 
     // TotalSupply
     document.getElementById('btnTS').onclick = async () => {
+      setOut('查询中...', true);
       const r = await get('/api/nfa/total-supply');
       setOut(r);
     };
   </script>
 </body>
 </html>
+
