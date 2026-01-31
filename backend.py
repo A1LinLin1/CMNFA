@@ -3,6 +3,7 @@
 
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
+from werkzeug.utils import secure_filename
 import subprocess
 import json
 import os
@@ -16,7 +17,12 @@ from datetime import datetime
 CONTRACT_NAME = os.getenv("CM_CONTRACT", "CMNFA")
 SDK_CONF_PATH = os.getenv("CM_SDK", "./testdata/sdk_config.yml")
 CMC_BIN = os.getenv("CM_CMC_BIN", "./cmc")  # 相对工作目录
-WORK_DIR = os.getenv("CM_WORKDIR", "/home/young3/chainmaker-go/tools/cmc")
+WORK_DIR = os.getenv("CM_WORKDIR", "/home/yong3/chainmaker-go/tools/cmc")
+UPLOAD_DIR = "static/nfa_images"
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+
+# 创建上传目录
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Flask
 app = Flask(__name__, template_folder="templates", static_folder="static")
@@ -30,8 +36,7 @@ log = logging.getLogger("cmnfa")
 def _is_base64(s: str) -> bool:
     try:
         # 粗略判断：长度与字符集
-        if not s or any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r" for c in s):
-            return False
+        if not s or any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcd    return False
         base64.b64decode(s, validate=True)
         return True
     except Exception:
@@ -61,8 +66,7 @@ def exec_cmc(method: str, params: dict | None = None, sync: bool = True, timeout
         # 用紧凑 JSON，避免 shell 解析问题
         cmd.append("--params=" + json.dumps(params, separators=(',', ':')))
 
-    if not os.path.exists(os.path.join(WORK_DIR, os.path.basename(CMC_BIN))):
-        return False, f"找不到 CMC 可执行文件：{os.path.join(WORK_DIR, CMC_BIN)}"
+    if no     return False, f"找不到 CMC 可执行文件：{os.path.join(WORK_DIR, CMC_BIN)}"
     if not os.path.exists(os.path.join(WORK_DIR, SDK_CONF_PATH)):
         return False, f"找不到 SDK 配置：{os.path.join(WORK_DIR, SDK_CONF_PATH)}"
 
@@ -87,10 +91,7 @@ def exec_cmc(method: str, params: dict | None = None, sync: bool = True, timeout
 def ok(data): return jsonify({"success": True, "data": data})
 def err(msg): return jsonify({"success": False, "error": msg})
 
-# =========================
-# 页面
-# =========================
-@app.get("/")
+# ====t("/")
 def home():
     return render_template("index.html", contract=CONTRACT_NAME)
 
@@ -121,7 +122,7 @@ def total_supply():
 @app.post("/api/nfa/owner")
 def owner_of():
     body = request.get_json(force=True)
-    token_id = body.get("tokenId", "").strip()
+    toket("tokenId", "").strip()
     if not token_id:
         return err("tokenId 不能为空")
     ok_, data = exec_cmc("OwnerOf", {"tokenId": token_id})
@@ -151,7 +152,7 @@ def balance_of():
     ok_, data = exec_cmc("BalanceOf", {"account": account})
     if not ok_:
         return err(data)
-    res = data.get("contract_result", {}).get("result", "MA==")
+    res = data.get("contract_result", {
     return ok(_decode_result(res))
 
 # =========================
@@ -180,12 +181,7 @@ def mint():
         meta = base64.b64encode(metadata_text).decode("utf-8") if metadata_text else ""
 
     ok_, data = exec_cmc("Mint", {"to": to, "tokenId": token_id, "categoryName": category, "metadata": meta})
-    if not ok_:
-        return err(data)
-
-    # 取事件与提示
-    cr = data.get("contract_result", {})
-    msg = cr.get("message", "")
+  .get("message", "")
     evts = cr.get("contract_event", [])
     pretty = {
         "message": msg,
@@ -194,6 +190,36 @@ def mint():
         "block_height": data.get("tx_block_height")
     }
     return ok(pretty)
+
+@app.post("/api/upload/image")
+def upload_image():
+    if "file" not in request.files:
+        return err("缺少文件字段 file")
+    f = request.files["file"]
+    if not f.filename:
+        return err("文件名为空")
+
+    # 校验文件类型
+    if not f.mimetype.startswith("image/"):
+        return err("只允许上传图片")
+
+    filename = secure_filename(f.filename)
+    if not filename:
+        return err("无效的文件名")
+    
+    # 防止重名，加时间戳
+    name, ext = os.path.splitext(filename)
+    final_name = f"{name}_{int(datetime.now().timestamp())}{ext}"
+    save_path = os.path.join(UPLOAD_DIR, final_name)
+    
+    try:
+        f.save(save_path)
+        # 返回可访问 URL
+        url = f"/static/nfa_images/{final_name}"
+        log.info(f"Image uploaded: {final_name}")
+        return ok({"url": url, "filename": final_name})
+    except Exception as e:
+        return err(f"上传失败：{e}")
 
 @app.post("/api/nfa/transfer-from")
 def transfer_from():
@@ -218,7 +244,7 @@ def transfer_from():
 
 @app.post("/api/nfa/burn")
 def burn():
-    b = request.get_json(force=True)
+    b = request.georce=True)
     token_id = b.get("tokenId", "").strip()
     if not token_id:
         return err("tokenId 不能为空")
@@ -244,8 +270,7 @@ def create_or_set_category():
       "categoryURI": "https://example.org/nfa"
     }
     """
-    b = request.get_json(force=True)
-    name = b.get("categoryName", "").strip()
+    b = requestryName", "").strip()
     uri = b.get("categoryURI", "").strip()
     if not (name and uri):
         return err("categoryName / categoryURI 不能为空")
@@ -258,7 +283,7 @@ def create_or_set_category():
     return ok({
         "message": cr.get("message", ""),
         "events": cr.get("contract_event", []),
-        "tx_id": data.get("tx_id"),
+ tx_id": data.get("tx_id"),
         "block_height": data.get("tx_block_height")
     })
 
@@ -269,4 +294,5 @@ if __name__ == "__main__":
     print(f"🚀 CMNFA backend | contract={CONTRACT_NAME}")
     print(f"📁 workdir: {WORK_DIR}")
     print(f"🔧 sdk:     {SDK_CONF_PATH}")
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app"0.0.0.0", port=5000, debug=True)
+
